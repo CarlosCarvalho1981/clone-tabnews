@@ -1,5 +1,5 @@
 function Home(){
-    return <h2>Outra mensagem</h2>
+    return <h1><b>Outra mensagem</b></h1>
 }
 
 export default Home;
