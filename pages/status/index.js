@@ -2,58 +2,49 @@ import useSWR from "swr";
 
 async function fetchAPI(key) {
   const response = await fetch(key);
-  const responseBody = await response.json();
-  return responseBody;
+
+  if (!response.ok) {
+    throw new Error("Falha ao consultar a API");
+  }
+
+  return response.json();
 }
 
 export default function StatusPage() {
+  const { isLoading, data, error } = useSWR("/api/v1/status", fetchAPI, {
+    refreshInterval: 2000,
+  });
+
+  if (error) {
+    return <h1>Erro ao carregar o status!</h1>;
+  }
+
+  if (isLoading) {
+    return <h1>Carregando...</h1>;
+  }
+
   return (
     <>
       <h1>Status</h1>
-      <UpdatedAt />
-      <DataBaseStatus />
+      <UpdatedAt updatedAt={data.updated_at} />
+      <DataBaseStatus database={data.dependencies.database} />
     </>
   );
 }
 
-function DataBaseStatus() {
-  const { isLoading, data } = useSWR("/api/v1/status", fetchAPI, {
-    refreshInterval: 2000,
-  });
+function UpdatedAt({ updatedAt }) {
+  return (
+    <h2>Última atualização: {new Date(updatedAt).toLocaleString("pt-BR")}</h2>
+  );
+}
 
-  let databaseStatus = "Carregando...";
-
-  if (!isLoading && data) {
-    databaseStatus = (
-      <>
-        <div>Versão: {data.dependencies.database.version}</div>
-        <div>
-          Número máximo de conexões ao banco:{" "}
-          {data.dependencies.database.max_connections}
-        </div>
-        <div>
-          Usuários Connectados: {data.dependencies.database.used_connections}
-        </div>
-      </>
-    );
-  }
+function DataBaseStatus({ database }) {
   return (
     <>
       <h2>Banco de Dados</h2>
-      <div>{databaseStatus}</div>
+      <div>Versão: {database.version}</div>
+      <div>Número máximo de conexões ao banco: {database.max_connections}</div>
+      <div>Usuários conectados: {database.used_connections}</div>
     </>
   );
-}
-
-function UpdatedAt() {
-  const { isLoading, data } = useSWR("/api/v1/status", fetchAPI, {
-    refreshInterval: 2000,
-  });
-
-  let updatedAt = "Carregando...";
-
-  if (!isLoading && data) {
-    updatedAt = new Date(data.updated_at).toLocaleString("pt-BR");
-  }
-  return <h2>Última atualização: {updatedAt}</h2>;
 }
