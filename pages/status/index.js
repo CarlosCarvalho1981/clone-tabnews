@@ -16,7 +16,7 @@ export default function StatusPage() {
   });
 
   if (error) {
-    return <h1>Erro ao carregar o status!</h1>;
+    return <h1>Problema ao carregar o status!</h1>;
   }
 
   if (isLoading) {
